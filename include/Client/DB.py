@@ -1,50 +1,8 @@
-from . import ClientAPI
-from . import ClientCaches
-from . import ClientData
-from . import ClientDefaults
-from . import ClientFiles
-from . import ClientGUIShortcuts
-from . import ClientImageHandling
-from . import ClientMedia
-from . import ClientNetworkingBandwidth
-from . import ClientNetworkingContexts
-from . import ClientNetworkingDomain
-from . import ClientNetworkingLogin
-from . import ClientNetworkingSessions
-from . import ClientOptions
-from . import ClientRatings
-from . import ClientSearch
-from . import ClientServices
-from . import ClientThreading
-import collections
-import gc
-import hashlib
-import itertools
-import json
-from . import HydrusConstants as HC
-from . import HydrusData
-from . import HydrusDB
-from . import HydrusExceptions
-from . import HydrusFileHandling
-from . import HydrusGlobals as HG
-from . import HydrusImageHandling
-from . import HydrusNetwork
-from . import HydrusNetworking
-from . import HydrusPaths
-from . import HydrusSerialisable
-from . import HydrusTagArchive
-from . import HydrusTags
-from . import HydrusVideoHandling
-from . import ClientConstants as CC
-import os
-import psutil
-import random
-import re
-import sqlite3
-import stat
-import time
-import traceback
-import wx
+import os, psutil, random, re, sqlite3, stat, time, traceback, wx, collections, gc, hashlib, itertools, json
+
+from . import ClientAPI, ClientCaches, ClientData, ClientDefaults, ClientFiles, ClientGUIShortcuts, ClientImageHandling, ClientMedia, ClientNetworkingBandwidth, ClientNetworkingContexts, ClientNetworkingDomain, ClientNetworkingLogin, ClientNetworkingSessions, ClientOptions, ClientRatings, ClientSearch, ClientServices, ClientThreading, ClientConstants as CC
+
+from . import HydrusConstants as HC, HydrusData, HydrusDB, HydrusExceptions, HydrusFileHandling, HydrusGlobals as HG, HydrusImageHandling, HydrusNetwork, HydrusNetworking, HydrusPaths, HydrusSerialisable, HydrusTagArchive, HydrusTags, HydrusVideoHandling
 
 YAML_DUMP_ID_SINGLE = 0
 YAML_DUMP_ID_REMOTE_BOORU = 1
@@ -61,7 +19,6 @@ MIN_CACHED_INTEGER = -99999999
 MAX_CACHED_INTEGER = 99999999
 
 def CanCacheInteger( num ):
-    
     return MIN_CACHED_INTEGER <= num and num <= MAX_CACHED_INTEGER
     
 def ConvertWildcardToSQLiteLikeParameter( wildcard ):
