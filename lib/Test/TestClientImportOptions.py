@@ -1,27 +1,25 @@
-from . import ClientConstants as CC
-from . import ClientImportFileSeeds
-from . import ClientImportOptions
-from . import ClientTags
-from . import HydrusConstants as HC
-from . import HydrusData
-from . import HydrusExceptions
-from . import HydrusGlobals as HG
-import os
-import unittest
+### IMPORTS ###
+from lib.Client import Constants as CC, ImportFileSeeds, ImportOptions, Tags
+
+from lib.Hydrus import Constants as HC, Data, Exceptions, Globals as HG
+
 from mock import patch
 
+import os, unittest
+
+### CODE ###
 class TestCheckerOptions( unittest.TestCase ):
     
     def test_checker_options( self ):
         
-        regular_checker_options = ClientImportOptions.CheckerOptions( intended_files_per_check = 5, never_faster_than = 30, never_slower_than = 86400, death_file_velocity = ( 1, 86400 ) )
-        fast_checker_options = ClientImportOptions.CheckerOptions( intended_files_per_check = 2, never_faster_than = 30, never_slower_than = 86400, death_file_velocity = ( 1, 86400 ) )
-        slow_checker_options = ClientImportOptions.CheckerOptions( intended_files_per_check = 10, never_faster_than = 30, never_slower_than = 86400, death_file_velocity = ( 1, 86400 ) )
-        callous_checker_options = ClientImportOptions.CheckerOptions( intended_files_per_check = 5, never_faster_than = 30, never_slower_than = 86400, death_file_velocity = ( 1, 60 ) )
+        regular_checker_options = ImportOptions.CheckerOptions( intended_files_per_check = 5, never_faster_than = 30, never_slower_than = 86400, death_file_velocity = ( 1, 86400 ) )
+        fast_checker_options = ImportOptions.CheckerOptions( intended_files_per_check = 2, never_faster_than = 30, never_slower_than = 86400, death_file_velocity = ( 1, 86400 ) )
+        slow_checker_options = ImportOptions.CheckerOptions( intended_files_per_check = 10, never_faster_than = 30, never_slower_than = 86400, death_file_velocity = ( 1, 86400 ) )
+        callous_checker_options = ImportOptions.CheckerOptions( intended_files_per_check = 5, never_faster_than = 30, never_slower_than = 86400, death_file_velocity = ( 1, 60 ) )
         
-        empty_file_seed_cache = ClientImportFileSeeds.FileSeedCache()
+        empty_file_seed_cache = ImportFileSeeds.FileSeedCache()
         
-        file_seed_cache = ClientImportFileSeeds.FileSeedCache()
+        file_seed_cache = ImportFileSeeds.FileSeedCache()
         
         last_check_time = 10000000
         
@@ -31,7 +29,7 @@ class TestCheckerOptions( unittest.TestCase ):
             
             url = 'https://wew.lad/' + os.urandom( 16 ).hex()
             
-            file_seed = ClientImportFileSeeds.FileSeed( ClientImportFileSeeds.FILE_SEED_TYPE_URL, url )
+            file_seed = ImportFileSeeds.FileSeed( ImportFileSeeds.FILE_SEED_TYPE_URL, url )
             
             file_seed.source_time = one_day_before - 10
             
@@ -42,18 +40,18 @@ class TestCheckerOptions( unittest.TestCase ):
             
             url = 'https://wew.lad/' + os.urandom( 16 ).hex()
             
-            file_seed = ClientImportFileSeeds.FileSeed( ClientImportFileSeeds.FILE_SEED_TYPE_URL, url )
+            file_seed = ImportFileSeeds.FileSeed( ImportFileSeeds.FILE_SEED_TYPE_URL, url )
             
             file_seed.source_time = last_check_time - 600
             
             file_seed_cache.AddFileSeeds( ( file_seed, ) )
             
         
-        bare_file_seed_cache = ClientImportFileSeeds.FileSeedCache()
+        bare_file_seed_cache = ImportFileSeeds.FileSeedCache()
         
         url = 'https://wew.lad/' + 'early'
         
-        file_seed = ClientImportFileSeeds.FileSeed( ClientImportFileSeeds.FILE_SEED_TYPE_URL, url )
+        file_seed = ImportFileSeeds.FileSeed( ImportFileSeeds.FILE_SEED_TYPE_URL, url )
         
         file_seed.source_time = one_day_before - 10
         
@@ -61,17 +59,17 @@ class TestCheckerOptions( unittest.TestCase ):
         
         url = 'https://wew.lad/' + 'in_time_delta'
         
-        file_seed = ClientImportFileSeeds.FileSeed( ClientImportFileSeeds.FILE_SEED_TYPE_URL, url )
+        file_seed = ImportFileSeeds.FileSeed( ImportFileSeeds.FILE_SEED_TYPE_URL, url )
         
         file_seed.source_time = one_day_before + 10
         
         bare_file_seed_cache.AddFileSeeds( ( file_seed, ) )
         
-        busy_file_seed_cache = ClientImportFileSeeds.FileSeedCache()
+        busy_file_seed_cache = ImportFileSeeds.FileSeedCache()
         
         url = 'https://wew.lad/' + 'early'
         
-        file_seed = ClientImportFileSeeds.FileSeed( ClientImportFileSeeds.FILE_SEED_TYPE_URL, url )
+        file_seed = ImportFileSeeds.FileSeed( ImportFileSeeds.FILE_SEED_TYPE_URL, url )
         
         file_seed.source_time = one_day_before - 10
         
@@ -81,20 +79,20 @@ class TestCheckerOptions( unittest.TestCase ):
             
             url = 'https://wew.lad/' + os.urandom( 16 ).hex()
             
-            file_seed = ClientImportFileSeeds.FileSeed( ClientImportFileSeeds.FILE_SEED_TYPE_URL, url )
+            file_seed = ImportFileSeeds.FileSeed( ImportFileSeeds.FILE_SEED_TYPE_URL, url )
             
             file_seed.source_time = one_day_before + ( ( i + 1 ) * 10 ) - 1
             
             busy_file_seed_cache.AddFileSeeds( ( file_seed, ) )
             
         
-        new_thread_file_seed_cache = ClientImportFileSeeds.FileSeedCache()
+        new_thread_file_seed_cache = ImportFileSeeds.FileSeedCache()
         
         for i in range( 10 ):
             
             url = 'https://wew.lad/' + os.urandom( 16 ).hex()
             
-            file_seed = ClientImportFileSeeds.FileSeed( ClientImportFileSeeds.FILE_SEED_TYPE_URL, url )
+            file_seed = ImportFileSeeds.FileSeed( ImportFileSeeds.FILE_SEED_TYPE_URL, url )
             
             file_seed.source_time = last_check_time - 600
             
@@ -180,7 +178,7 @@ class TestCheckerOptions( unittest.TestCase ):
         
         # Let's test these new static timings, where if faster_than == slower_than, we just add that period to the 'last_next_check_time' (e.g. checking every sunday night)
         
-        static_checker_options = ClientImportOptions.CheckerOptions( intended_files_per_check = 5, never_faster_than = 3600, never_slower_than = 3600, death_file_velocity = ( 1, 3600 ) )
+        static_checker_options = ImportOptions.CheckerOptions( intended_files_per_check = 5, never_faster_than = 3600, never_slower_than = 3600, death_file_velocity = ( 1, 3600 ) )
         
         self.assertTrue( static_checker_options.IsDead( bare_file_seed_cache, last_check_time ) )
         
@@ -196,7 +194,7 @@ class TestFileImportOptions( unittest.TestCase ):
     
     def test_file_import_options( self ):
         
-        file_import_options = ClientImportOptions.FileImportOptions()
+        file_import_options = ImportOptions.FileImportOptions()
         
         exclude_deleted = False
         do_not_check_known_urls_before_importing = False
@@ -401,7 +399,7 @@ class TestTagImportOptions( unittest.TestCase ):
         
         #
         
-        default_tag_import_options = ClientImportOptions.TagImportOptions()
+        default_tag_import_options = ImportOptions.TagImportOptions()
         
         self.assertEqual( default_tag_import_options.ShouldFetchTagsEvenIfURLKnownAndFileAlreadyInDB(), False )
         self.assertEqual( default_tag_import_options.ShouldFetchTagsEvenIfHashKnownAndFileAlreadyInDB(), False )
@@ -414,14 +412,14 @@ class TestTagImportOptions( unittest.TestCase ):
         
         #
         
-        tag_import_options = ClientImportOptions.TagImportOptions( fetch_tags_even_if_url_recognised_and_file_already_in_db = True )
+        tag_import_options = ImportOptions.TagImportOptions( fetch_tags_even_if_url_recognised_and_file_already_in_db = True )
         
         self.assertEqual( tag_import_options.ShouldFetchTagsEvenIfURLKnownAndFileAlreadyInDB(), True )
         self.assertEqual( tag_import_options.ShouldFetchTagsEvenIfHashKnownAndFileAlreadyInDB(), False )
         
         #
         
-        tag_import_options = ClientImportOptions.TagImportOptions( fetch_tags_even_if_hash_recognised_and_file_already_in_db = True )
+        tag_import_options = ImportOptions.TagImportOptions( fetch_tags_even_if_hash_recognised_and_file_already_in_db = True )
         
         self.assertEqual( tag_import_options.ShouldFetchTagsEvenIfURLKnownAndFileAlreadyInDB(), False )
         self.assertEqual( tag_import_options.ShouldFetchTagsEvenIfHashKnownAndFileAlreadyInDB(), True )
@@ -435,13 +433,13 @@ class TestTagImportOptions( unittest.TestCase ):
         
         #
         
-        tag_blacklist = ClientTags.TagFilter()
+        tag_blacklist = Tags.TagFilter()
         
         tag_blacklist.SetRule( 'series:', CC.FILTER_BLACKLIST )
         
-        service_keys_to_service_tag_import_options = { example_service_key : ClientImportOptions.ServiceTagImportOptions( get_tags = True ) }
+        service_keys_to_service_tag_import_options = { example_service_key : ImportOptions.ServiceTagImportOptions( get_tags = True ) }
         
-        tag_import_options = ClientImportOptions.TagImportOptions( tag_blacklist = tag_blacklist, service_keys_to_service_tag_import_options = service_keys_to_service_tag_import_options )
+        tag_import_options = ImportOptions.TagImportOptions( tag_blacklist = tag_blacklist, service_keys_to_service_tag_import_options = service_keys_to_service_tag_import_options )
         
         result = tag_import_options.GetServiceKeysToContentUpdates( CC.STATUS_SUCCESSFUL_AND_NEW, True, example_hash, some_tags )
         
@@ -467,10 +465,10 @@ class TestTagImportOptions( unittest.TestCase ):
         
         service_keys_to_service_tag_import_options = {}
         
-        service_keys_to_service_tag_import_options[ example_service_key_1 ] = ClientImportOptions.ServiceTagImportOptions( get_tags = True )
-        service_keys_to_service_tag_import_options[ example_service_key_2 ] = ClientImportOptions.ServiceTagImportOptions( get_tags = False )
+        service_keys_to_service_tag_import_options[ example_service_key_1 ] = ImportOptions.ServiceTagImportOptions( get_tags = True )
+        service_keys_to_service_tag_import_options[ example_service_key_2 ] = ImportOptions.ServiceTagImportOptions( get_tags = False )
         
-        tag_import_options = ClientImportOptions.TagImportOptions( service_keys_to_service_tag_import_options = service_keys_to_service_tag_import_options )
+        tag_import_options = ImportOptions.TagImportOptions( service_keys_to_service_tag_import_options = service_keys_to_service_tag_import_options )
         
         result = tag_import_options.GetServiceKeysToContentUpdates( CC.STATUS_SUCCESSFUL_AND_NEW, True, example_hash, some_tags )
         
@@ -494,7 +492,7 @@ class TestServiceTagImportOptions( unittest.TestCase ):
         
         #
         
-        default_service_tag_import_options = ClientImportOptions.ServiceTagImportOptions()
+        default_service_tag_import_options = ImportOptions.ServiceTagImportOptions()
         
         self.assertEqual( default_service_tag_import_options._get_tags, False )
         self.assertEqual( default_service_tag_import_options._additional_tags, [] )
@@ -514,29 +512,29 @@ class TestServiceTagImportOptions( unittest.TestCase ):
         
         #
         
-        service_tag_import_options = ClientImportOptions.ServiceTagImportOptions( get_tags = True )
+        service_tag_import_options = ImportOptions.ServiceTagImportOptions( get_tags = True )
         
         self.assertEqual( service_tag_import_options.GetTags( example_service_key, CC.STATUS_SUCCESSFUL_AND_NEW, True, example_hash, some_tags ), some_tags )
         
         #
         
-        only_namespaced = ClientTags.TagFilter()
+        only_namespaced = Tags.TagFilter()
         
         only_namespaced.SetRule( '', CC.FILTER_BLACKLIST )
         
-        service_tag_import_options = ClientImportOptions.ServiceTagImportOptions( get_tags = True, get_tags_filter = only_namespaced )
+        service_tag_import_options = ImportOptions.ServiceTagImportOptions( get_tags = True, get_tags_filter = only_namespaced )
         
         self.assertEqual( service_tag_import_options.GetTags( example_service_key, CC.STATUS_SUCCESSFUL_AND_NEW, True, example_hash, some_tags ), { 'character:samus aran', 'series:metroid' } )
         
         #
         
-        only_samus = ClientTags.TagFilter()
+        only_samus = Tags.TagFilter()
         
         only_samus.SetRule( '', CC.FILTER_BLACKLIST )
         only_samus.SetRule( ':', CC.FILTER_BLACKLIST )
         only_samus.SetRule( 'character:samus aran', CC.FILTER_WHITELIST )
         
-        service_tag_import_options = ClientImportOptions.ServiceTagImportOptions( get_tags = True, get_tags_filter = only_samus )
+        service_tag_import_options = ImportOptions.ServiceTagImportOptions( get_tags = True, get_tags_filter = only_samus )
         
         self.assertEqual( service_tag_import_options.GetTags( example_service_key, CC.STATUS_SUCCESSFUL_AND_NEW, True, example_hash, some_tags ), { 'character:samus aran' } )
         
@@ -549,7 +547,7 @@ class TestServiceTagImportOptions( unittest.TestCase ):
         
         #
         
-        service_tag_import_options = ClientImportOptions.ServiceTagImportOptions( get_tags = True, additional_tags = [ 'wew' ] )
+        service_tag_import_options = ImportOptions.ServiceTagImportOptions( get_tags = True, additional_tags = [ 'wew' ] )
         
         self.assertEqual( service_tag_import_options.GetTags( example_service_key, CC.STATUS_SUCCESSFUL_AND_NEW, True, example_hash, some_tags ), some_tags.union( [ 'wew' ] ) )
         
@@ -562,7 +560,7 @@ class TestServiceTagImportOptions( unittest.TestCase ):
         
         #
         
-        service_tag_import_options = ClientImportOptions.ServiceTagImportOptions( get_tags = True, to_new_files = True, to_already_in_inbox = False, to_already_in_archive = False )
+        service_tag_import_options = ImportOptions.ServiceTagImportOptions( get_tags = True, to_new_files = True, to_already_in_inbox = False, to_already_in_archive = False )
         
         self.assertEqual( service_tag_import_options.GetTags( example_service_key, CC.STATUS_SUCCESSFUL_AND_NEW, True, example_hash, some_tags ), some_tags )
         self.assertEqual( service_tag_import_options.GetTags( example_service_key, CC.STATUS_SUCCESSFUL_BUT_REDUNDANT, True, example_hash, some_tags ), set() )
@@ -570,7 +568,7 @@ class TestServiceTagImportOptions( unittest.TestCase ):
         
         #
         
-        service_tag_import_options = ClientImportOptions.ServiceTagImportOptions( get_tags = True, to_new_files = False, to_already_in_inbox = True, to_already_in_archive = False )
+        service_tag_import_options = ImportOptions.ServiceTagImportOptions( get_tags = True, to_new_files = False, to_already_in_inbox = True, to_already_in_archive = False )
         
         self.assertEqual( service_tag_import_options.GetTags( example_service_key, CC.STATUS_SUCCESSFUL_AND_NEW, True, example_hash, some_tags ), set() )
         self.assertEqual( service_tag_import_options.GetTags( example_service_key, CC.STATUS_SUCCESSFUL_BUT_REDUNDANT, True, example_hash, some_tags ), some_tags )
@@ -578,7 +576,7 @@ class TestServiceTagImportOptions( unittest.TestCase ):
         
         #
         
-        service_tag_import_options = ClientImportOptions.ServiceTagImportOptions( get_tags = True, to_new_files = False, to_already_in_inbox = False, to_already_in_archive = True )
+        service_tag_import_options = ImportOptions.ServiceTagImportOptions( get_tags = True, to_new_files = False, to_already_in_inbox = False, to_already_in_archive = True )
         
         self.assertEqual( service_tag_import_options.GetTags( example_service_key, CC.STATUS_SUCCESSFUL_AND_NEW, True, example_hash, some_tags ), set() )
         self.assertEqual( service_tag_import_options.GetTags( example_service_key, CC.STATUS_SUCCESSFUL_BUT_REDUNDANT, True, example_hash, some_tags ), set() )
@@ -596,7 +594,7 @@ class TestServiceTagImportOptions( unittest.TestCase ):
         
         HG.test_controller.SetRead( 'filter_existing_tags', existing_tags )
         
-        service_tag_import_options = ClientImportOptions.ServiceTagImportOptions( get_tags = True, only_add_existing_tags = True )
+        service_tag_import_options = ImportOptions.ServiceTagImportOptions( get_tags = True, only_add_existing_tags = True )
         
         self.assertEqual( service_tag_import_options.GetTags( example_service_key, CC.STATUS_SUCCESSFUL_AND_NEW, True, example_hash, some_tags ), existing_tags )
         
@@ -605,13 +603,13 @@ class TestServiceTagImportOptions( unittest.TestCase ):
         some_tags = { 'explicit', 'bodysuit', 'character:samus aran', 'series:metroid' }
         existing_tags = { 'bodysuit' }
         
-        only_unnamespaced = ClientTags.TagFilter()
+        only_unnamespaced = Tags.TagFilter()
         
         only_unnamespaced.SetRule( ':', CC.FILTER_BLACKLIST )
         
         HG.test_controller.SetRead( 'filter_existing_tags', existing_tags )
         
-        service_tag_import_options = ClientImportOptions.ServiceTagImportOptions( get_tags = True, only_add_existing_tags = True, only_add_existing_tags_filter = only_unnamespaced )
+        service_tag_import_options = ImportOptions.ServiceTagImportOptions( get_tags = True, only_add_existing_tags = True, only_add_existing_tags_filter = only_unnamespaced )
         
         self.assertEqual( service_tag_import_options.GetTags( example_service_key, CC.STATUS_SUCCESSFUL_AND_NEW, True, example_hash, some_tags ), { 'bodysuit', 'character:samus aran', 'series:metroid' } )
         

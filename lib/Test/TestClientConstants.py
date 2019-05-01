@@ -1,15 +1,13 @@
-from . import ClientConstants as CC
-from . import ClientGUIManagement
-from . import ClientNetworking
-from . import ClientCaches
-from . import ClientServices
-import collections
-from . import HydrusConstants as HC
-import os
-import unittest
-from . import HydrusData
-from . import HydrusGlobals as HG
+### IMPORTS ###
+from lib.Client import Constants as CC, Networking, Caches, Services
 
+from lib.ClientGUI import Management
+
+from lib.Hydrus import Constants as HC, Data, Globals as HG
+
+import collections, os, unittest
+
+### CODE ###
 class TestManagers( unittest.TestCase ):
     
     def test_services( self ):
@@ -21,15 +19,15 @@ class TestManagers( unittest.TestCase ):
             self.assertEqual( service.GetName(), name )
             
         
-        repo_key = HydrusData.GenerateKey()
+        repo_key = Data.GenerateKey()
         repo_type = HC.TAG_REPOSITORY
         repo_name = 'test tag repo'
         
-        repo = ClientServices.GenerateService( repo_key, repo_type, repo_name )
+        repo = Services.GenerateService( repo_key, repo_type, repo_name )
         
-        other_key = HydrusData.GenerateKey()
+        other_key = Data.GenerateKey()
         
-        other = ClientServices.GenerateService( other_key, HC.LOCAL_BOORU, 'booru' )
+        other = Services.GenerateService( other_key, HC.LOCAL_BOORU, 'booru' )
         
         services = []
         
@@ -38,7 +36,7 @@ class TestManagers( unittest.TestCase ):
         
         HG.test_controller.SetRead( 'services', services )
         
-        services_manager = ClientCaches.ServicesManager( HG.client_controller )
+        services_manager = Caches.ServicesManager( HG.client_controller )
         
         #
         
@@ -71,18 +69,18 @@ class TestManagers( unittest.TestCase ):
     
     def test_undo( self ):
         
-        hash_1 = HydrusData.GenerateKey()
-        hash_2 = HydrusData.GenerateKey()
-        hash_3 = HydrusData.GenerateKey()
+        hash_1 = Data.GenerateKey()
+        hash_2 = Data.GenerateKey()
+        hash_3 = Data.GenerateKey()
         
-        command_1 = { CC.COMBINED_LOCAL_FILE_SERVICE_KEY : [ HydrusData.ContentUpdate( HC.CONTENT_TYPE_FILES, HC.CONTENT_UPDATE_ARCHIVE, { hash_1 } ) ] }
-        command_2 = { CC.COMBINED_LOCAL_FILE_SERVICE_KEY : [ HydrusData.ContentUpdate( HC.CONTENT_TYPE_FILES, HC.CONTENT_UPDATE_INBOX, { hash_2 } ) ] }
-        command_3 = { CC.COMBINED_LOCAL_FILE_SERVICE_KEY : [ HydrusData.ContentUpdate( HC.CONTENT_TYPE_FILES, HC.CONTENT_UPDATE_ARCHIVE, { hash_1, hash_3 } ) ] }
+        command_1 = { CC.COMBINED_LOCAL_FILE_SERVICE_KEY : [ Data.ContentUpdate( HC.CONTENT_TYPE_FILES, HC.CONTENT_UPDATE_ARCHIVE, { hash_1 } ) ] }
+        command_2 = { CC.COMBINED_LOCAL_FILE_SERVICE_KEY : [ Data.ContentUpdate( HC.CONTENT_TYPE_FILES, HC.CONTENT_UPDATE_INBOX, { hash_2 } ) ] }
+        command_3 = { CC.COMBINED_LOCAL_FILE_SERVICE_KEY : [ Data.ContentUpdate( HC.CONTENT_TYPE_FILES, HC.CONTENT_UPDATE_ARCHIVE, { hash_1, hash_3 } ) ] }
         
-        command_1_inverted = { CC.COMBINED_LOCAL_FILE_SERVICE_KEY : [ HydrusData.ContentUpdate( HC.CONTENT_TYPE_FILES, HC.CONTENT_UPDATE_INBOX, { hash_1 } ) ] }
-        command_2_inverted = { CC.COMBINED_LOCAL_FILE_SERVICE_KEY : [ HydrusData.ContentUpdate( HC.CONTENT_TYPE_FILES, HC.CONTENT_UPDATE_ARCHIVE, { hash_2 } ) ] }
+        command_1_inverted = { CC.COMBINED_LOCAL_FILE_SERVICE_KEY : [ Data.ContentUpdate( HC.CONTENT_TYPE_FILES, HC.CONTENT_UPDATE_INBOX, { hash_1 } ) ] }
+        command_2_inverted = { CC.COMBINED_LOCAL_FILE_SERVICE_KEY : [ Data.ContentUpdate( HC.CONTENT_TYPE_FILES, HC.CONTENT_UPDATE_ARCHIVE, { hash_2 } ) ] }
         
-        undo_manager = ClientCaches.UndoManager( HG.client_controller )
+        undo_manager = Caches.UndoManager( HG.client_controller )
         
         #
         

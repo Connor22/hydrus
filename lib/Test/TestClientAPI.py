@@ -1,31 +1,13 @@
-from . import ClientCaches
-from . import ClientConstants as CC
-from . import ClientAPI
-from . import ClientLocalServer
-from . import ClientLocalServerResources
-from . import ClientMedia
-from . import ClientRatings
-from . import ClientSearch
-from . import ClientServices
-from . import ClientTags
-import collections
-import hashlib
-import http.client
-from . import HydrusConstants as HC
-from . import HydrusExceptions
-from . import HydrusTags
-from . import HydrusText
-import json
-import os
-import random
-import shutil
-import time
-import unittest
-import urllib
-from twisted.internet import reactor
-from . import HydrusData
-from . import HydrusGlobals as HG
+### IMPORTS ###
+from lib.Client import Caches, ClientConstants as CC, API, LocalServer, LocalServerResources, Media, Ratings, Search, ClientServices, ClientTags
 
+from lib.Hydrus import Constants as HC, Exceptions, Tags, Text, Globals as HG, Data
+
+import collections, hashlib, http.client, json, os, random, shutil, time, unittest, urllib
+
+from twisted.internet import reactor
+
+### CODE ###
 class TestClientAPI( unittest.TestCase ):
     
     @classmethod
@@ -38,8 +20,8 @@ class TestClientAPI( unittest.TestCase ):
         
         def TWISTEDSetup():
             
-            reactor.listenTCP( 45869, ClientLocalServer.HydrusServiceClientAPI( cls._client_api, allow_non_local_connections = False ) )
-            reactor.listenTCP( 45899, ClientLocalServer.HydrusServiceClientAPI( cls._client_api_cors, allow_non_local_connections = False ) )
+            reactor.listenTCP( 45869, LocalServer.HydrusServiceClientAPI( cls._client_api, allow_non_local_connections = False ) )
+            reactor.listenTCP( 45899, LocalServer.HydrusServiceClientAPI( cls._client_api_cors, allow_non_local_connections = False ) )
             
         
         reactor.callFromThread( TWISTEDSetup )
@@ -100,9 +82,9 @@ class TestClientAPI( unittest.TestCase ):
         
         # fail
         
-        ClientAPI.api_request_dialog_open = False
+        API.api_request_dialog_open = False
         
-        connection.request( 'GET', format_request_new_permissions_query( 'test', [ ClientAPI.CLIENT_API_PERMISSION_ADD_FILES ] ) )
+        connection.request( 'GET', format_request_new_permissions_query( 'test', [ API.CLIENT_API_PERMISSION_ADD_FILES ] ) )
         
         response = connection.getresponse()
         
@@ -118,18 +100,18 @@ class TestClientAPI( unittest.TestCase ):
         
         permissions_to_set_up = []
         
-        permissions_to_set_up.append( ( 'everything', list( ClientAPI.ALLOWED_PERMISSIONS ) ) )
-        permissions_to_set_up.append( ( 'add_files', [ ClientAPI.CLIENT_API_PERMISSION_ADD_FILES ] ) )
-        permissions_to_set_up.append( ( 'add_tags', [ ClientAPI.CLIENT_API_PERMISSION_ADD_TAGS ] ) )
-        permissions_to_set_up.append( ( 'add_urls', [ ClientAPI.CLIENT_API_PERMISSION_ADD_URLS ] ) )
-        permissions_to_set_up.append( ( 'search_all_files', [ ClientAPI.CLIENT_API_PERMISSION_SEARCH_FILES ] ) )
-        permissions_to_set_up.append( ( 'search_green_files', [ ClientAPI.CLIENT_API_PERMISSION_SEARCH_FILES ] ) )
+        permissions_to_set_up.append( ( 'everything', list( API.ALLOWED_PERMISSIONS ) ) )
+        permissions_to_set_up.append( ( 'add_files', [ API.CLIENT_API_PERMISSION_ADD_FILES ] ) )
+        permissions_to_set_up.append( ( 'add_tags', [ API.CLIENT_API_PERMISSION_ADD_TAGS ] ) )
+        permissions_to_set_up.append( ( 'add_urls', [ API.CLIENT_API_PERMISSION_ADD_URLS ] ) )
+        permissions_to_set_up.append( ( 'search_all_files', [ API.CLIENT_API_PERMISSION_SEARCH_FILES ] ) )
+        permissions_to_set_up.append( ( 'search_green_files', [ API.CLIENT_API_PERMISSION_SEARCH_FILES ] ) )
         
         set_up_permissions = {}
         
         for ( name, basic_permissions ) in permissions_to_set_up:
             
-            ClientAPI.api_request_dialog_open = True
+            API.api_request_dialog_open = True
             
             connection.request( 'GET', format_request_new_permissions_query( name, basic_permissions ) )
             
@@ -137,7 +119,7 @@ class TestClientAPI( unittest.TestCase ):
             
             data = response.read()
             
-            ClientAPI.api_request_dialog_open = False
+            API.api_request_dialog_open = False
             
             self.assertEqual( response.status, 200 )
             
@@ -149,11 +131,11 @@ class TestClientAPI( unittest.TestCase ):
             
             self.assertEqual( len( access_key_hex ), 64 )
             
-            access_key_hex = HydrusText.HexFilter( access_key_hex )
+            access_key_hex = Text.HexFilter( access_key_hex )
             
             self.assertEqual( len( access_key_hex ), 64 )
             
-            api_permissions = ClientAPI.last_api_permissions_request
+            api_permissions = API.last_api_permissions_request
             
             if 'green' in name:
                 
@@ -420,7 +402,7 @@ class TestClientAPI( unittest.TestCase ):
         
         clean_tags = [ "bikini", "blue eyes", "character:samus aran", "::)", "10", "11", "9", "wew", "flower" ]
         
-        clean_tags = HydrusTags.SortNumericTags( clean_tags )
+        clean_tags = Tags.SortNumericTags( clean_tags )
         
         expected_answer[ 'tags' ] = clean_tags
         
@@ -488,7 +470,7 @@ class TestClientAPI( unittest.TestCase ):
         
         expected_service_keys_to_content_updates = collections.defaultdict( list )
         
-        expected_service_keys_to_content_updates[ CC.LOCAL_TAG_SERVICE_KEY ] = [ HydrusData.ContentUpdate( HC.CONTENT_TYPE_MAPPINGS, HC.CONTENT_UPDATE_ADD, ( 'test', set( [ hash ] ) ) ), HydrusData.ContentUpdate( HC.CONTENT_TYPE_MAPPINGS, HC.CONTENT_UPDATE_ADD, ( 'test2', set( [ hash ] ) ) ) ]
+        expected_service_keys_to_content_updates[ CC.LOCAL_TAG_SERVICE_KEY ] = [ Data.ContentUpdate( HC.CONTENT_TYPE_MAPPINGS, HC.CONTENT_UPDATE_ADD, ( 'test', set( [ hash ] ) ) ), Data.ContentUpdate( HC.CONTENT_TYPE_MAPPINGS, HC.CONTENT_UPDATE_ADD, ( 'test2', set( [ hash ] ) ) ) ]
         
         [ ( ( service_keys_to_content_updates, ), kwargs ) ] = HG.test_controller.GetWrite( 'content_updates' )
         
@@ -527,7 +509,7 @@ class TestClientAPI( unittest.TestCase ):
         
         expected_service_keys_to_content_updates = collections.defaultdict( list )
         
-        expected_service_keys_to_content_updates[ CC.LOCAL_TAG_SERVICE_KEY ] = [ HydrusData.ContentUpdate( HC.CONTENT_TYPE_MAPPINGS, HC.CONTENT_UPDATE_ADD, ( 'test', set( [ hash, hash2 ] ) ) ), HydrusData.ContentUpdate( HC.CONTENT_TYPE_MAPPINGS, HC.CONTENT_UPDATE_ADD, ( 'test2', set( [ hash, hash2 ] ) ) ) ]
+        expected_service_keys_to_content_updates[ CC.LOCAL_TAG_SERVICE_KEY ] = [ Data.ContentUpdate( HC.CONTENT_TYPE_MAPPINGS, HC.CONTENT_UPDATE_ADD, ( 'test', set( [ hash, hash2 ] ) ) ), Data.ContentUpdate( HC.CONTENT_TYPE_MAPPINGS, HC.CONTENT_UPDATE_ADD, ( 'test2', set( [ hash, hash2 ] ) ) ) ]
         
         [ ( ( service_keys_to_content_updates, ), kwargs ) ] = HG.test_controller.GetWrite( 'content_updates' )
         
@@ -553,9 +535,9 @@ class TestClientAPI( unittest.TestCase ):
         old_sib = HG.test_controller.tag_siblings_manager
         old_par = HG.test_controller.tag_parents_manager
         
-        tag_siblings = collections.defaultdict( HydrusData.default_dict_set )
+        tag_siblings = collections.defaultdict( Data.default_dict_set )
         
-        first_dict = HydrusData.default_dict_set()
+        first_dict = Data.default_dict_set()
         
         first_dict[ HC.CONTENT_STATUS_CURRENT ] = { ( 'test', 'muh test' ) }
         
@@ -563,9 +545,9 @@ class TestClientAPI( unittest.TestCase ):
         
         HG.test_controller.SetRead( 'tag_siblings', tag_siblings )
         
-        tag_parents = collections.defaultdict( HydrusData.default_dict_set )
+        tag_parents = collections.defaultdict( Data.default_dict_set )
         
-        first_dict = HydrusData.default_dict_set()
+        first_dict = Data.default_dict_set()
         
         first_dict[ HC.CONTENT_STATUS_CURRENT ] = { ( 'muh test', 'muh test parent' ) }
         
@@ -573,8 +555,8 @@ class TestClientAPI( unittest.TestCase ):
         
         HG.test_controller.SetRead( 'tag_parents', tag_parents )
         
-        HG.test_controller.tag_siblings_manager = ClientCaches.TagSiblingsManager( HG.test_controller )
-        HG.test_controller.tag_parents_manager = ClientCaches.TagParentsManager( HG.test_controller )
+        HG.test_controller.tag_siblings_manager = Caches.TagSiblingsManager( HG.test_controller )
+        HG.test_controller.tag_parents_manager = Caches.TagParentsManager( HG.test_controller )
         
         # ok, now with
         
@@ -596,7 +578,7 @@ class TestClientAPI( unittest.TestCase ):
         
         expected_service_keys_to_content_updates = collections.defaultdict( list )
         
-        expected_service_keys_to_content_updates[ CC.LOCAL_TAG_SERVICE_KEY ] = [ HydrusData.ContentUpdate( HC.CONTENT_TYPE_MAPPINGS, HC.CONTENT_UPDATE_ADD, ( 'muh test', set( [ hash ] ) ) ), HydrusData.ContentUpdate( HC.CONTENT_TYPE_MAPPINGS, HC.CONTENT_UPDATE_ADD, ( 'muh test parent', set( [ hash ] ) ) ) ]
+        expected_service_keys_to_content_updates[ CC.LOCAL_TAG_SERVICE_KEY ] = [ Data.ContentUpdate( HC.CONTENT_TYPE_MAPPINGS, HC.CONTENT_UPDATE_ADD, ( 'muh test', set( [ hash ] ) ) ), Data.ContentUpdate( HC.CONTENT_TYPE_MAPPINGS, HC.CONTENT_UPDATE_ADD, ( 'muh test parent', set( [ hash ] ) ) ) ]
         
         [ ( ( service_keys_to_content_updates, ), kwargs ) ] = HG.test_controller.GetWrite( 'content_updates' )
         
@@ -635,7 +617,7 @@ class TestClientAPI( unittest.TestCase ):
         
         expected_service_keys_to_content_updates = collections.defaultdict( list )
         
-        expected_service_keys_to_content_updates[ CC.LOCAL_TAG_SERVICE_KEY ] = [ HydrusData.ContentUpdate( HC.CONTENT_TYPE_MAPPINGS, HC.CONTENT_UPDATE_ADD, ( 'test', set( [ hash ] ) ) ) ]
+        expected_service_keys_to_content_updates[ CC.LOCAL_TAG_SERVICE_KEY ] = [ Data.ContentUpdate( HC.CONTENT_TYPE_MAPPINGS, HC.CONTENT_UPDATE_ADD, ( 'test', set( [ hash ] ) ) ) ]
         
         [ ( ( service_keys_to_content_updates, ), kwargs ) ] = HG.test_controller.GetWrite( 'content_updates' )
         
@@ -931,7 +913,7 @@ class TestClientAPI( unittest.TestCase ):
         
         expected_service_keys_to_content_updates = collections.defaultdict( list )
         
-        expected_service_keys_to_content_updates[ CC.COMBINED_LOCAL_FILE_SERVICE_KEY ] = [ HydrusData.ContentUpdate( HC.CONTENT_TYPE_URLS, HC.CONTENT_UPDATE_ADD, ( [ url ], [ hash ] ) ) ]
+        expected_service_keys_to_content_updates[ CC.COMBINED_LOCAL_FILE_SERVICE_KEY ] = [ Data.ContentUpdate( HC.CONTENT_TYPE_URLS, HC.CONTENT_UPDATE_ADD, ( [ url ], [ hash ] ) ) ]
         
         expected_result = [ ( ( expected_service_keys_to_content_updates, ), {} ) ]
         
@@ -960,7 +942,7 @@ class TestClientAPI( unittest.TestCase ):
         
         expected_service_keys_to_content_updates = collections.defaultdict( list )
         
-        expected_service_keys_to_content_updates[ CC.COMBINED_LOCAL_FILE_SERVICE_KEY ] = [ HydrusData.ContentUpdate( HC.CONTENT_TYPE_URLS, HC.CONTENT_UPDATE_ADD, ( [ url ], [ hash ] ) ) ]
+        expected_service_keys_to_content_updates[ CC.COMBINED_LOCAL_FILE_SERVICE_KEY ] = [ Data.ContentUpdate( HC.CONTENT_TYPE_URLS, HC.CONTENT_UPDATE_ADD, ( [ url ], [ hash ] ) ) ]
         
         expected_result = [ ( ( expected_service_keys_to_content_updates, ), {} ) ]
         
@@ -989,7 +971,7 @@ class TestClientAPI( unittest.TestCase ):
         
         expected_service_keys_to_content_updates = collections.defaultdict( list )
         
-        expected_service_keys_to_content_updates[ CC.COMBINED_LOCAL_FILE_SERVICE_KEY ] = [ HydrusData.ContentUpdate( HC.CONTENT_TYPE_URLS, HC.CONTENT_UPDATE_DELETE, ( [ url ], [ hash ] ) ) ]
+        expected_service_keys_to_content_updates[ CC.COMBINED_LOCAL_FILE_SERVICE_KEY ] = [ Data.ContentUpdate( HC.CONTENT_TYPE_URLS, HC.CONTENT_UPDATE_DELETE, ( [ url ], [ hash ] ) ) ]
         
         expected_result = [ ( ( expected_service_keys_to_content_updates, ), {} ) ]
         
@@ -1018,7 +1000,7 @@ class TestClientAPI( unittest.TestCase ):
         
         expected_service_keys_to_content_updates = collections.defaultdict( list )
         
-        expected_service_keys_to_content_updates[ CC.COMBINED_LOCAL_FILE_SERVICE_KEY ] = [ HydrusData.ContentUpdate( HC.CONTENT_TYPE_URLS, HC.CONTENT_UPDATE_DELETE, ( [ url ], [ hash ] ) ) ]
+        expected_service_keys_to_content_updates[ CC.COMBINED_LOCAL_FILE_SERVICE_KEY ] = [ Data.ContentUpdate( HC.CONTENT_TYPE_URLS, HC.CONTENT_UPDATE_DELETE, ( [ url ], [ hash ] ) ) ]
         
         expected_result = [ ( ( expected_service_keys_to_content_updates, ), {} ) ]
         
@@ -1103,7 +1085,7 @@ class TestClientAPI( unittest.TestCase ):
         pretend_request.parsed_request_args = {}
         pretend_request.client_api_permissions = set_up_permissions[ 'everything' ]
         
-        predicates = ClientLocalServerResources.ParseClientAPISearchPredicates( pretend_request )
+        predicates = LocalServerResources.ParseClientAPISearchPredicates( pretend_request )
         
         self.assertEqual( predicates, [] )
         
@@ -1114,9 +1096,9 @@ class TestClientAPI( unittest.TestCase ):
         pretend_request.parsed_request_args = { 'system_inbox' : True }
         pretend_request.client_api_permissions = set_up_permissions[ 'search_green_files' ]
         
-        with self.assertRaises( HydrusExceptions.InsufficientCredentialsException ):
+        with self.assertRaises( Exceptions.InsufficientCredentialsException ):
             
-            ClientLocalServerResources.ParseClientAPISearchPredicates( pretend_request )
+            LocalServerResources.ParseClientAPISearchPredicates( pretend_request )
             
         
         #
@@ -1126,9 +1108,9 @@ class TestClientAPI( unittest.TestCase ):
         pretend_request.parsed_request_args = { 'tags' : [ '-green' ] }
         pretend_request.client_api_permissions = set_up_permissions[ 'search_green_files' ]
         
-        with self.assertRaises( HydrusExceptions.InsufficientCredentialsException ):
+        with self.assertRaises( Exceptions.InsufficientCredentialsException ):
             
-            ClientLocalServerResources.ParseClientAPISearchPredicates( pretend_request )
+            LocalServerResources.ParseClientAPISearchPredicates( pretend_request )
             
         
         #
@@ -1138,12 +1120,12 @@ class TestClientAPI( unittest.TestCase ):
         pretend_request.parsed_request_args = { 'tags' : [ 'green', '-kino' ] }
         pretend_request.client_api_permissions = set_up_permissions[ 'search_green_files' ]
         
-        predicates = ClientLocalServerResources.ParseClientAPISearchPredicates( pretend_request )
+        predicates = LocalServerResources.ParseClientAPISearchPredicates( pretend_request )
         
         expected_predicates = []
         
-        expected_predicates.append( ClientSearch.Predicate( predicate_type = HC.PREDICATE_TYPE_TAG, value = 'green' ) )
-        expected_predicates.append( ClientSearch.Predicate( predicate_type = HC.PREDICATE_TYPE_TAG, value = 'kino', inclusive = False ) )
+        expected_predicates.append( Search.Predicate( predicate_type = HC.PREDICATE_TYPE_TAG, value = 'green' ) )
+        expected_predicates.append( Search.Predicate( predicate_type = HC.PREDICATE_TYPE_TAG, value = 'kino', inclusive = False ) )
         
         self.assertEqual( set( predicates ), set( expected_predicates ) )
         
@@ -1154,12 +1136,12 @@ class TestClientAPI( unittest.TestCase ):
         pretend_request.parsed_request_args = { 'tags' : [ 'green' ], 'system_inbox' : True }
         pretend_request.client_api_permissions = set_up_permissions[ 'search_green_files' ]
         
-        predicates = ClientLocalServerResources.ParseClientAPISearchPredicates( pretend_request )
+        predicates = LocalServerResources.ParseClientAPISearchPredicates( pretend_request )
         
         expected_predicates = []
         
-        expected_predicates.append( ClientSearch.Predicate( predicate_type = HC.PREDICATE_TYPE_TAG, value = 'green' ) )
-        expected_predicates.append( ClientSearch.Predicate( predicate_type = HC.PREDICATE_TYPE_SYSTEM_INBOX ) )
+        expected_predicates.append( Search.Predicate( predicate_type = HC.PREDICATE_TYPE_TAG, value = 'green' ) )
+        expected_predicates.append( Search.Predicate( predicate_type = HC.PREDICATE_TYPE_SYSTEM_INBOX ) )
         
         self.assertEqual( set( predicates ), set( expected_predicates ) )
         
@@ -1170,12 +1152,12 @@ class TestClientAPI( unittest.TestCase ):
         pretend_request.parsed_request_args = { 'tags' : [ 'green' ], 'system_archive' : True }
         pretend_request.client_api_permissions = set_up_permissions[ 'search_green_files' ]
         
-        predicates = ClientLocalServerResources.ParseClientAPISearchPredicates( pretend_request )
+        predicates = LocalServerResources.ParseClientAPISearchPredicates( pretend_request )
         
         expected_predicates = []
         
-        expected_predicates.append( ClientSearch.Predicate( predicate_type = HC.PREDICATE_TYPE_TAG, value = 'green' ) )
-        expected_predicates.append( ClientSearch.Predicate( predicate_type = HC.PREDICATE_TYPE_SYSTEM_ARCHIVE ) )
+        expected_predicates.append( Search.Predicate( predicate_type = HC.PREDICATE_TYPE_TAG, value = 'green' ) )
+        expected_predicates.append( Search.Predicate( predicate_type = HC.PREDICATE_TYPE_SYSTEM_ARCHIVE ) )
         
         self.assertEqual( set( predicates ), set( expected_predicates ) )
         
@@ -1210,17 +1192,17 @@ class TestClientAPI( unittest.TestCase ):
             height = random.randint( 200, 4096 )
             duration = random.choice( [ 220, 16.66667, None ] )
             
-            file_info_manager = ClientMedia.FileInfoManager( file_id, hash, size = size, mime = mime, width = width, height = height, duration = duration )
+            file_info_manager = Media.FileInfoManager( file_id, hash, size = size, mime = mime, width = width, height = height, duration = duration )
             
             service_keys_to_statuses_to_tags = { CC.LOCAL_TAG_SERVICE_KEY : { HC.CONTENT_STATUS_CURRENT : [ 'blue eyes', 'blonde hair' ], HC.CONTENT_STATUS_PENDING : [ 'bodysuit' ] } }
             
-            tags_manager = ClientMedia.TagsManager( service_keys_to_statuses_to_tags )
+            tags_manager = Media.TagsManager( service_keys_to_statuses_to_tags )
             
-            locations_manager = ClientMedia.LocationsManager( set(), set(), set(), set() )
-            ratings_manager = ClientRatings.RatingsManager( {} )
-            file_viewing_stats_manager = ClientMedia.FileViewingStatsManager( 0, 0, 0, 0 )
+            locations_manager = Media.LocationsManager( set(), set(), set(), set() )
+            ratings_manager = Ratings.RatingsManager( {} )
+            file_viewing_stats_manager = Media.FileViewingStatsManager( 0, 0, 0, 0 )
             
-            media_result = ClientMedia.MediaResult( file_info_manager, tags_manager, locations_manager, ratings_manager, file_viewing_stats_manager )
+            media_result = Media.MediaResult( file_info_manager, tags_manager, locations_manager, ratings_manager, file_viewing_stats_manager )
             
             media_results.append( media_result )
             
@@ -1393,17 +1375,17 @@ class TestClientAPI( unittest.TestCase ):
         height = 20
         duration = None
         
-        file_info_manager = ClientMedia.FileInfoManager( file_id, hash, size = size, mime = mime, width = width, height = height, duration = duration )
+        file_info_manager = Media.FileInfoManager( file_id, hash, size = size, mime = mime, width = width, height = height, duration = duration )
         
         service_keys_to_statuses_to_tags = { CC.LOCAL_TAG_SERVICE_KEY : { HC.CONTENT_STATUS_CURRENT : [ 'blue eyes', 'blonde hair' ], HC.CONTENT_STATUS_PENDING : [ 'bodysuit' ] } }
         
-        tags_manager = ClientMedia.TagsManager( service_keys_to_statuses_to_tags )
+        tags_manager = Media.TagsManager( service_keys_to_statuses_to_tags )
         
-        locations_manager = ClientMedia.LocationsManager( set(), set(), set(), set() )
-        ratings_manager = ClientRatings.RatingsManager( {} )
-        file_viewing_stats_manager = ClientMedia.FileViewingStatsManager( 0, 0, 0, 0 )
+        locations_manager = Media.LocationsManager( set(), set(), set(), set() )
+        ratings_manager = Ratings.RatingsManager( {} )
+        file_viewing_stats_manager = Media.FileViewingStatsManager( 0, 0, 0, 0 )
         
-        media_result = ClientMedia.MediaResult( file_info_manager, tags_manager, locations_manager, ratings_manager, file_viewing_stats_manager )
+        media_result = Media.MediaResult( file_info_manager, tags_manager, locations_manager, ratings_manager, file_viewing_stats_manager )
         
         HG.test_controller.SetRead( 'media_results', ( media_result, ) )
         HG.test_controller.SetRead( 'media_results_from_ids', ( media_result, ) )
@@ -1544,9 +1526,9 @@ class TestClientAPI( unittest.TestCase ):
         
         hash_404 = os.urandom( 32 )
         
-        file_info_manager = ClientMedia.FileInfoManager( 123456, hash_404, size = size, mime = mime, width = width, height = height, duration = duration )
+        file_info_manager = Media.FileInfoManager( 123456, hash_404, size = size, mime = mime, width = width, height = height, duration = duration )
         
-        media_result = ClientMedia.MediaResult( file_info_manager, tags_manager, locations_manager, ratings_manager, file_viewing_stats_manager )
+        media_result = Media.MediaResult( file_info_manager, tags_manager, locations_manager, ratings_manager, file_viewing_stats_manager )
         
         HG.test_controller.SetRead( 'media_results', ( media_result, ) )
         HG.test_controller.SetRead( 'media_results_from_ids', ( media_result, ) )
@@ -1613,5 +1595,3 @@ class TestClientAPI( unittest.TestCase ):
         connection = http.client.HTTPConnection( host, port, timeout = 10 )
         
         self._test_cors_succeeds( connection )
-        
-    

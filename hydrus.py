@@ -10,7 +10,7 @@ import traceback, os
 
 try:
     #### IMPORTING ####
-    from include.Hydrus import Py2To3, Exceptions, Constants as HC,\
+    from lib.Hydrus import Py2To3, Exceptions, Constants as HC,\
      Data, Paths, Globals as HG, Logger        
 
     import locale, sys, time, threading, argparser, wx
@@ -52,12 +52,12 @@ except Exception as e:
 def run( program: str ):
     if program == 'server':
         Py2To3.do_2to3_test()
-        from include.Server import Controller
+        from lib.Server import Controller
         action = result.action
         action = Controller.ProcessStartingAction( db_dir, action )
     if program == 'client':
         Py2To3.do_2to3_test( wx_error_display_callable = wx.SafeShowMessage )
-        from include.Client import Controller
+        from lib.Client import Controller
 
     with Logger.Logger( db_dir, program ) as logger:
         try:
@@ -66,7 +66,9 @@ def run( program: str ):
 
             if program == 'client' || program == 'server' && action in ( 'start', 'restart'):
                 Data.Print( f'hydrus {program} started' )
+
                 if not HG.twisted_is_broke: threading.Thread( target = reactor.run, name = 'twisted', kwargs = { 'installSignalHandlers' : 0 } ).start()
+
                 controller = Controller.Controller( db_dir )
                 controller.run()
 

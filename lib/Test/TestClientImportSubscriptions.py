@@ -1,26 +1,19 @@
-from . import ClientConstants as CC
-from . import ClientDefaults
-from . import ClientImportSubscriptions
-from . import ClientNetworking
-from . import ClientNetworkingBandwidth
-from . import ClientNetworkingDomain
-from . import ClientNetworkingLogin
-from . import ClientNetworkingSessions
-import collections
-from . import HydrusConstants as HC
-from . import HydrusData
-from . import HydrusExceptions
-from . import HydrusNetworking
-import os
+### IMPORTS ###
+from lib.Client import Constants as CC, Defaults, ImportSubscriptions, Networking as ClientNetworking, NetworkingBandwidth, NetworkingDomain, NetworkingLogin, NetworkingSessions
+
+from lib.Hydrus import Constants as HC, Data, Exceptions, Networking as HydrusNetworking, Globals as HG
+
 from . import TestController
-import threading
-import time
-import unittest
-from . import HydrusGlobals as HG
+
+import os, collections, threading, time, unittest
+
 from httmock import all_requests, urlmatch, HTTMock, response
+
 from mock import patch
 
+### STATICS ###
 MISSING_RESPONSE = '404, bad result'
+
 ERROR_RESPONSE = '500, it done broke'
 
 EMPTY_RESPONSE = '''<html>
@@ -31,6 +24,7 @@ EMPTY_RESPONSE = '''<html>
   </body>
 </html>'''
 
+### CODE ###
 @all_requests
 def catch_all( url, request ):
     
@@ -67,12 +61,12 @@ class TestSubscription( unittest.TestCase ):
     def _PrepEngine( self ):
         
         mock_controller = TestController.MockController()
-        bandwidth_manager = ClientNetworkingBandwidth.NetworkBandwidthManager()
-        session_manager = ClientNetworkingSessions.NetworkSessionManager()
-        domain_manager = ClientNetworkingDomain.NetworkDomainManager()
-        login_manager = ClientNetworkingLogin.NetworkLoginManager()
+        bandwidth_manager = NetworkingBandwidth.NetworkBandwidthManager()
+        session_manager = NetworkingSessions.NetworkSessionManager()
+        domain_manager = NetworkingDomain.NetworkDomainManager()
+        login_manager = NetworkingLogin.NetworkLoginManager()
         
-        ClientDefaults.SetDefaultDomainManagerData( domain_manager )
+        Defaults.SetDefaultDomainManagerData( domain_manager )
         
         engine = ClientNetworking.NetworkEngine( mock_controller, bandwidth_manager, session_manager, domain_manager, login_manager )
         

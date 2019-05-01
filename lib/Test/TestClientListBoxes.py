@@ -1,16 +1,15 @@
-from . import ClientConstants as CC
-from . import ClientDefaults
-from . import ClientGUIListBoxes
-import collections
-from . import HydrusConstants as HC
-import os
-import random
-from . import TestController
-import time
-import unittest
-import wx
-from . import HydrusGlobals as HG
+### IMPORTS ###
+from lib.Client import Constants as CC, Defaults
 
+from lib.ClientGUI import ListBoxes
+
+from lib.Hydrus import Constants as HC, Globals as HG
+
+from . import TestController
+
+import os, collections, random, time, unittest, wx
+
+### CODE ###
 def DoClick( click, panel, do_delayed_ok_afterwards = False ):
     
     wx.QueueEvent( panel, click )
@@ -77,7 +76,7 @@ class TestListBoxes( unittest.TestCase ):
                 
                 initial_namespace_colours = { 'series' : ( 153, 101, 21 ), '' : ( 0, 111, 250 ), None : ( 114, 160, 193 ), 'creator' : ( 170, 0, 0 ) }
                 
-                panel = ClientGUIListBoxes.ListBoxTagsColourOptions( frame, initial_namespace_colours )
+                panel = ListBoxes.ListBoxTagsColourOptions( frame, initial_namespace_colours )
                 
                 frame.SetPanel( panel )
                 

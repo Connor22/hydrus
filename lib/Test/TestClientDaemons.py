@@ -1,18 +1,12 @@
-from . import ClientDaemons
-from . import ClientImporting
-from . import ClientImportLocal
-from . import ClientPaths
-import collections
-from . import HydrusConstants as HC
-import os
-import shutil
-import stat
-import unittest
-from . import HydrusData
-from . import ClientConstants as CC
-from . import HydrusGlobals as HG
-from . import HydrusPaths
+### IMPORT ###
+from lib.Client import Daemons, Importing, ImportLocal, Paths, Constants as CC,
 
+from lib.Hydrus import Constants as HC, Data, Globals as HG, Paths
+
+import collections, os, shutil, stat, unittest
+
+
+### CODE ###
 with open( os.path.join( HC.STATIC_DIR, 'hydrus.png' ), 'rb' ) as f:
     
     EXAMPLE_FILE = f.read()
@@ -21,19 +15,19 @@ class TestDaemons( unittest.TestCase ):
     
     def test_import_folders_daemon( self ):
         
-        test_dir = ClientPaths.GetTempDir()
+        test_dir = Paths.GetTempDir()
         
         try:
             
             HG.test_controller.SetRead( 'hash_status', ( CC.STATUS_UNKNOWN, None, '' ) )
             
-            HydrusPaths.MakeSureDirectoryExists( test_dir )
+            Paths.MakeSureDirectoryExists( test_dir )
             
             hydrus_png_path = os.path.join( HC.STATIC_DIR, 'hydrus.png' )
             
-            HydrusPaths.MirrorFile( hydrus_png_path, os.path.join( test_dir, '0' ) )
-            HydrusPaths.MirrorFile( hydrus_png_path, os.path.join( test_dir, '1' ) ) # previously imported
-            HydrusPaths.MirrorFile( hydrus_png_path, os.path.join( test_dir, '2' ) )
+            Paths.MirrorFile( hydrus_png_path, os.path.join( test_dir, '0' ) )
+            Paths.MirrorFile( hydrus_png_path, os.path.join( test_dir, '1' ) ) # previously imported
+            Paths.MirrorFile( hydrus_png_path, os.path.join( test_dir, '2' ) )
             
             with open( os.path.join( test_dir, '3' ), 'wb' ) as f: f.write( b'blarg' ) # broken
             with open( os.path.join( test_dir, '4' ), 'wb' ) as f: f.write( b'blarg' ) # previously failed
@@ -47,7 +41,7 @@ class TestDaemons( unittest.TestCase ):
             actions[ CC.STATUS_DELETED ] = CC.IMPORT_FOLDER_DELETE
             actions[ CC.STATUS_ERROR ] = CC.IMPORT_FOLDER_IGNORE
             
-            import_folder = ClientImportLocal.ImportFolder( 'imp', path = test_dir, actions = actions )
+            import_folder = ImportLocal.ImportFolder( 'imp', path = test_dir, actions = actions )
             
             HG.test_controller.SetRead( 'serialisable_names', [ 'imp' ] )
             HG.test_controller.SetRead( 'serialisable_named', import_folder )
@@ -55,7 +49,7 @@ class TestDaemons( unittest.TestCase ):
             HG.test_controller.ClearWrites( 'import_file' )
             HG.test_controller.ClearWrites( 'serialisable' )
             
-            ClientDaemons.DAEMONCheckImportFolders()
+            Daemons.DAEMONCheckImportFolders()
             
             import_file = HG.test_controller.GetWrite( 'import_file' )
             
